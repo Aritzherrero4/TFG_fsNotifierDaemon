@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <systemd/sd-journal.h>
 #include <systemd/sd-daemon.h>
+#include <systemd/sd-bus.h>
 
 #include "../include/notifier.hpp"
 
@@ -19,3 +20,6 @@
 #define SD_DEBUG   "<7>"  /* debug-level messages */
 
 static FILE *log_file;
+static sd_bus_error error = SD_BUS_ERROR_NULL;
+static sd_bus_message *m = NULL;
+static sd_bus *bus = NULL;

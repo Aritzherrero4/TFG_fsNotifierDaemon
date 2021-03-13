@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <systemd/sd-bus.h>
+
 #define INO_MODE IN_CREATE | IN_DELETE | IN_MODIFY
 #define NAME_MAX 255
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))

@@ -23,30 +23,6 @@ void Notifier::addInotifyWatch()
 }
 
 
-void Notifier::processEvents(){
-    char buf[BUF_LEN];
-    struct inotify_event *event = NULL;
-    while (1) {
-            int n = read(ino_fd, buf, BUF_LEN);
-            char* p = buf;
-            fs::path tmp_path;
-            while (p < buf + n) {
-                event = (struct inotify_event*)p;
-                uint32_t mask = event->mask;
-                tmp_path = store[event->wd];
-                tmp_path += event->name;
-                if (mask & IN_DELETE) {
-                    printf("File has been deleted: %s\n", tmp_path.c_str());
-                }
-                if (mask & IN_CREATE) {
-                    printf("File has been created: %s\n", tmp_path.c_str());
-                }
-                if (mask & IN_MODIFY) {
-                    printf("File has been modified\n");
-                }
 
-                p += sizeof(struct inotify_event) + event->len;
-            }
-    }
-}
+
 
