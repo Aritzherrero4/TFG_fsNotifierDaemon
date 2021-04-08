@@ -1,0 +1,16 @@
+# User level dbus -- for now
+# Enable
+# systemctl --user enable /home/aritz/TFG-aritz/fsNotifierDaemon/fsNotifier.service
+# Start /Stop
+# systemctl [start | stop] --user fsNotifier.service
+[Unit]
+Description=Daemon to detect changes in the file system
+Requires=fsCheck.service
+
+[Service]
+Type=simple
+ExecStart=/home/aritz/TFG-aritz/fsNotifierDaemon/fsNotifierDaemon
+BusName=net.aritzherrero.fsNotify
+
+[Install]
+WantedBy=multi-user.target

@@ -44,23 +44,47 @@ int initialize(){
         fprintf(log_file, "Failed to connect to system bus: %s\n", strerror(-r));
         return r;
     }
+    //Request a bus name to send no-reply messages
+    r = sd_bus_request_name(bus, "net.aritzherrero.fsNotify", 0);
+    if (r < 0) {
+        fprintf(log_file, "Failed to obtain the bus name: %s\n", strerror(-r));
+        return r;
+    }
     return 0;
 }
 
 int send_bus_message(int event, fs::path path){
         int r;
-        r = sd_bus_call_method(bus,
-                               "net.aritzherrero.fsCheck",           /* service to contact */
-                               "/net/aritzherrero/fsCheck",           /* object path */
-                               "net.aritzherrero.fsCheck",           /* interface name */
-                               "getUpdate",                          /* method name */
-                               &error,                               /* object to return error in */
-                               &m,                                   /* return message on success */
-                               "is",                                 /* input signature */
-                                event,                               /* first argument */
-                               path.c_str());                        /* second argument */
+        sd_bus_message *m = NULL;
+                       
+        r = sd_bus_message_new_method_call(bus, &m,
+                                "net.aritzherrero.fsCheck",             /* service to contact */
+                                "/net/aritzherrero/fsCheck",            /* object path */
+                                "net.aritzherrero.fsCheck",             /* interface name */
+                                "getUpdate");                           /* method name */
         if (r < 0) {
-                fprintf(log_file, "Failed to issue method call: %s\n", error.message);
+                fprintf(log_file, "Failed to create new method call: %d\n", r);
+                return r;
+        }
+        sd_bus_message_append(m,"is",                                   /* input signature */
+                                event,                                  /* first argument */
+                                path.c_str());                          /* second argument */
+        if (r < 0) {
+            fprintf(log_file, "Failed to append the arguments: %d\n", r);
+            return r;
+        }     
+
+        r = sd_bus_message_set_expect_reply(m, 0);                      /*Set No-reply*/
+        if (r < 0) {
+            fprintf(log_file, "Failed to set no reply: %d\n", r);
+            return r;
+        }      
+        //the destionation buss is set to NULL, so the msg bus will be used
+        //The cookie is also NULL
+        r = sd_bus_send(NULL, m, NULL);                                 /* Send the message*/
+
+        if (r < 0) {
+                fprintf(log_file, "Failed to send the message: %d\n", r);
                 return r;
         }
         return 0; 
@@ -117,7 +141,7 @@ int main()
 //exit
 dbus_error:
         sd_bus_error_free(&error);
-        sd_bus_message_unref(m);
+        sd_bus_message_unref(reply);
         sd_bus_unref(bus);
         return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
