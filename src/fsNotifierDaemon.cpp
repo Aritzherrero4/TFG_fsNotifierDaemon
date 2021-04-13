@@ -97,7 +97,13 @@ int main()
     char buf[BUF_LEN];
     struct inotify_event *event = NULL;
 
-    fs::path name = "/home/aritz/test/root";
+    fs::path name;
+    r = getPathFromConfig("/home/aritz/TFG-aritz/fsNotifierDaemon/fsNotifier.config", &name);
+    if (r < 0){
+        fprintf(log_file, "Failed to read configuration file.");
+        exit(r);
+    }
+    
     Notifier *nt = new Notifier(name);
 
     r = initialize();
@@ -106,7 +112,7 @@ int main()
     } 
     
     nt->addInotifyWatch();
-
+    fprintf(log_file, SD_INFO "Config file read. Path:%s\n", name.c_str());
     fprintf(log_file,SD_INFO "Watch system initialized\n");
     fflush(log_file);
     while (1) {
