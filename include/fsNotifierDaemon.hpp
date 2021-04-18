@@ -7,6 +7,7 @@
 #include <systemd/sd-journal.h>
 #include <systemd/sd-daemon.h>
 #include <systemd/sd-bus.h>
+#include <thread>
 
 #include "../include/notifier.hpp"
 #include "../include/utils.hpp"
