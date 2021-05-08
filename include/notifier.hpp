@@ -1,3 +1,6 @@
+#ifndef NOTIFIER_HPP
+#define NOTIFIER_HPP
+
 #include <filesystem>
 #include <iostream>
 #include <vector>
@@ -24,4 +27,5 @@ class Notifier{
     private:
         void sendmsg(fs::path p, int event);
 };
-    
+
+#endif
