@@ -111,31 +111,62 @@ int main()
             goto dbus_error;
     } 
     
-    nt->addInotifyWatch();
+    nt->addInotifyWatch(nt->basepath);
     fprintf(log_file, SD_INFO "Config file read. Path:%s\n", name.c_str());
     fprintf(log_file,SD_INFO "Watch system initialized\n");
     fflush(log_file);
+    
+
     while (1) {
             int n = read(nt->ino_fd, buf, BUF_LEN);
             char* p = buf;
+            fs::file_status s;
             fs::path tmp_path;
             while (p < buf + n) {
                 event = (struct inotify_event*)p;
                 uint32_t mask = event->mask;
-                tmp_path = nt->store[event->wd -1];
-                tmp_path += "/";
+
+                if (mask & IN_IGNORED){
+                    fflush(log_file);
+                    p += sizeof(struct inotify_event) + event->len;    
+                    continue;
+                }
+                std::cout << "Mask: "<<mask<<"\n\n\n";
+
+                tmp_path = nt->store.at(event->wd);
+                tmp_path += "/";    
                 tmp_path += event->name;
-                if (mask & IN_DELETE) {
-                    fprintf(log_file, SD_WARNING "File has been deleted: %s\n", tmp_path.c_str());
-                    r = send_bus_message(2, tmp_path);
+                if (mask & IN_ISDIR){
+                    s = fs::symlink_status(tmp_path);
+                    std::cout << "Processing event... Path: "<< tmp_path << "\n";
+                    std::cout << "Event.name: " << event->name << "\n";
+                    if(mask & IN_DELETE){
+                        fprintf(log_file, SD_WARNING "Direcroty has been deleted: %s\n", tmp_path.c_str());
+                        r = send_bus_message(2, tmp_path);
+                        nt->removeDir(tmp_path, event->wd);
+                    }
+                    if(mask & IN_CREATE){
+                        fprintf(log_file, SD_WARNING "Directory has been created: %s\n", tmp_path.c_str());
+                        std::cout << "create\n\n\n";
+                        nt->addInotifyWatch(tmp_path);
+                        r = send_bus_message(1, tmp_path);
+                    }
+
+
                 }
-                if (mask & IN_CREATE) {
-                    fprintf(log_file, SD_WARNING "File has been created: %s\n", tmp_path.c_str());
-                    r = send_bus_message(1, tmp_path);
-                }
-                if (mask & IN_MODIFY) {
-                    fprintf(log_file, SD_WARNING "File has been modified: %s\n", tmp_path.c_str());
-                    r = send_bus_message(3, tmp_path);
+                else {
+                    if (mask & IN_DELETE) {
+                        fprintf(log_file, SD_WARNING "File has been deleted: %s\n", tmp_path.c_str());
+                        r = send_bus_message(2, tmp_path);
+                    }
+                    if (mask & IN_CREATE) {
+                        fprintf(log_file, SD_WARNING "File has been created: %s\n", tmp_path.c_str());
+                        r = send_bus_message(1, tmp_path);
+                    }
+                    if (mask & IN_MODIFY) {
+                        fprintf(log_file, SD_WARNING "File has been modified: %s\n", tmp_path.c_str());
+                        r = send_bus_message(3, tmp_path);
+                    }
                 }
                 fflush(log_file);
                 p += sizeof(struct inotify_event) + event->len;
