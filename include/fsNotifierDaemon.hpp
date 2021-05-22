@@ -28,4 +28,6 @@ static sd_bus_error error = SD_BUS_ERROR_NULL;
 static sd_bus_message *reply = NULL;
 static sd_bus *bus = NULL;
 
+Notifier * nt;
+
 #endif

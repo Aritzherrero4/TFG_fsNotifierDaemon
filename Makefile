@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++17 -lstdc++fs -Wall -lsystemd
+CFLAGS = -std=c++17 -lstdc++fs -Wall -lsystemd -O3
 IDIR = ./include/
 SDIR = ./src/
 ODIR = ./obj/

@@ -4,15 +4,28 @@ void signal_handler(int sig) {
     if (sig == SIGTERM) {
         fprintf (log_file,SD_INFO "SIGTERM Received, daemon exiting\n");
         fclose(log_file);
+        sd_bus_error_free(&error);
+        sd_bus_message_unref(reply);
+        sd_bus_flush_close_unref(bus);
+        delete nt;
         exit (1);
     }
     if (sig == SIGINT) {
-      fprintf (log_file,SD_INFO "SIGINT Received, daemon exiting\n");
-      fclose(log_file);
-      exit (1);
+        fprintf (log_file,SD_INFO "SIGINT Received, daemon exiting\n");
+        fclose(log_file);
+        sd_bus_error_free(&error);
+        sd_bus_message_unref(reply);
+        sd_bus_flush_close_unref(bus);
+        delete nt;
+        exit (1);
     }
     if (sig == SIGHUP){
         fprintf (log_file,SD_INFO "SIGHUP Received, reloading config\n");
+        fclose(log_file);
+        sd_bus_error_free(&error);
+        sd_bus_message_unref(reply);
+        sd_bus_flush_close_unref(bus);
+        delete nt;
         exit (1);        
     }
 }
@@ -87,6 +100,7 @@ int send_bus_message(int event, fs::path path){
                 fprintf(log_file, "Failed to send the message: %d\n", r);
                 return r;
         }
+        sd_bus_message_unref(m);
         return 0; 
 }
 
@@ -104,7 +118,7 @@ int main()
         exit(r);
     }
     
-    Notifier *nt = new Notifier(name);
+    nt = new Notifier(name);
 
     r = initialize();
     if (r < 0) {
@@ -115,8 +129,7 @@ int main()
     fprintf(log_file, SD_INFO "Config file read. Path:%s\n", name.c_str());
     fprintf(log_file,SD_INFO "Watch system initialized\n");
     fflush(log_file);
-    
-
+    name.~path();
     while (1) {
             int n = read(nt->ino_fd, buf, BUF_LEN);
             char* p = buf;
@@ -131,7 +144,6 @@ int main()
                     p += sizeof(struct inotify_event) + event->len;    
                     continue;
                 }
-                std::cout << "Mask: "<<mask<<"\n\n\n";
 
                 tmp_path = nt->store.at(event->wd);
                 tmp_path += "/";    
@@ -179,6 +191,7 @@ int main()
 dbus_error:
         sd_bus_error_free(&error);
         sd_bus_message_unref(reply);
-        sd_bus_unref(bus);
+        sd_bus_flush_close_unref(bus);
+        delete nt;
         return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

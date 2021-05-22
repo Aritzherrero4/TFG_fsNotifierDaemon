@@ -31,6 +31,7 @@ class Notifier{
         std::map<fs::path, int> reverse_store;
 
         Notifier(fs::path basepath);
+        ~Notifier();
         void addInotifyWatch(fs::path basepath);
         void processEvents();
         void removeDir(fs::path path, int wd);
