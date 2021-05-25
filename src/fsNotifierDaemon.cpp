@@ -107,6 +107,15 @@ int send_bus_message(int event, fs::path path){
 
 int main()
 {
+    /**Performance analysis**/    
+    std::ifstream buffer("/proc/self/statm");
+    long page_size_kb;
+    double rss, shared_mem;
+    std::chrono::_V2::system_clock::time_point start, stop;
+    std::chrono::microseconds duration;
+    int tSize = 0, resident = 0, share = 0;
+
+    start = std::chrono::high_resolution_clock::now();
     int r;
     char buf[BUF_LEN];
     struct inotify_event *event = NULL;
@@ -130,6 +139,28 @@ int main()
     fprintf(log_file,SD_INFO "Watch system initialized\n");
     fflush(log_file);
     name.~path();
+
+
+
+    /** Performance analysis **/
+    stop = std::chrono::high_resolution_clock::now();
+
+    buffer >> tSize >> resident >> share;
+    buffer.close();
+
+    page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024;
+    rss = resident * page_size_kb;
+    shared_mem = share * page_size_kb;
+
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    std::cout << "Time for init: " << duration.count() << "us\n" 
+              << "ResMem:        " << rss << "KB\n" 
+              << "Shared:        " << shared_mem << "KB\n"
+              << "PrivMem:       " << rss -shared_mem << "KB\n";
+    std::cerr << duration.count() << ";" << rss << ";" << shared_mem << ";" << rss - shared_mem << "\n";
+
+    goto dbus_error;
     while (1) {
             int n = read(nt->ino_fd, buf, BUF_LEN);
             char* p = buf;
@@ -193,5 +224,5 @@ dbus_error:
         sd_bus_message_unref(reply);
         sd_bus_flush_close_unref(bus);
         delete nt;
-        return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
+        exit( r < 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
