@@ -23,9 +23,9 @@ class Notifier{
         int ino_fd;
         fs::path basepath;
         /*** 
-         * Since there space ocuppied by each <key, value> pair is not that big to
+         * Since there space occupied by each <key, value> pair is not that big to
          * be a problem even in large filesystems, the store is duplicated to allow
-         * reverse lookups more eficiently.
+         * reverse lookups more efficiently.
          ***/
         std::map<int, fs::path> store;
         std::map<fs::path, int> reverse_store;

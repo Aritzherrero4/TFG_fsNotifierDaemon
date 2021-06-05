@@ -15,13 +15,15 @@ $(ODIR)utils.o: $(SDIR)utils.cpp $(IDIR)utils.hpp
 	@g++ -c $(SDIR)utils.cpp -o $(ODIR)utils.o -std=c++17 -lstdc++fs -Wall
 
 $(ODIR)notifier.o: $(SDIR)notifier.cpp $(IDIR)notifier.hpp
+	@mkdir -p $(ODIR) $(LDIR)
 	@echo Compiling notifier...
 	@g++ -c $(SDIR)notifier.cpp -o $(ODIR)notifier.o $(CFLAGS)
 
-.PHONY : clean
+.PHONY : clean, fresh
+fresh: clean main
 clean :
-	@echo cleaning object files and the executable...
-	@rm $(ODIR)*
-	@rm fsNotifierDaemon
+	@echo Cleaning object files and the executable...
+	@rm -f $(ODIR)*
+	@rm -f fsNotifierDaemon
 	@echo Done
 

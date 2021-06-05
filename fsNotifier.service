@@ -9,6 +9,7 @@ Requires=fsCheck.service
 
 [Service]
 Type=simple
+WorkingDirectory=/home/aritz/TFG-aritz/fsNotifierDaemon/
 ExecStart=/home/aritz/TFG-aritz/fsNotifierDaemon/fsNotifierDaemon
 BusName=net.aritzherrero.fsNotify
 

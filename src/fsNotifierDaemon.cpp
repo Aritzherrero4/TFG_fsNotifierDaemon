@@ -92,7 +92,7 @@ int send_bus_message(int event, fs::path path){
             fprintf(log_file, "Failed to set no reply: %d\n", r);
             return r;
         }      
-        //the destionation buss is set to NULL, so the msg bus will be used
+        //the destination bus is set to NULL, so the msg bus will be used
         //The cookie is also NULL
         r = sd_bus_send(NULL, m, NULL);                                 /* Send the message*/
 
@@ -112,7 +112,7 @@ int main()
     struct inotify_event *event = NULL;
 
     fs::path name;
-    r = getPathFromConfig("/home/aritz/TFG-aritz/fsNotifierDaemon/fsNotifier.config", &name);
+    r = getPathFromConfig(fs::current_path().concat("/fsNotifier.config").c_str(), &name);
     if (r < 0){
         fprintf(log_file, "Failed to read configuration file.");
         exit(r);
@@ -153,7 +153,7 @@ int main()
                     std::cout << "Processing event... Path: "<< tmp_path << "\n";
                     std::cout << "Event.name: " << event->name << "\n";
                     if(mask & IN_DELETE){
-                        fprintf(log_file, SD_WARNING "Direcroty has been deleted: %s\n", tmp_path.c_str());
+                        fprintf(log_file, SD_WARNING "Directory has been deleted: %s\n", tmp_path.c_str());
                         r = send_bus_message(2, tmp_path);
                         nt->removeDir(tmp_path, event->wd);
                     }
